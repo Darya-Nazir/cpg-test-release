@@ -1,10 +1,20 @@
+# Original Assignment (verbatim)
+
 # Take-Home Assignment — Full-Stack Developer
 
 ## Context
 
 This archive ships `cpg-gen` — a Code Property Graph (CPG) generator for Go projects. A CPG fuses the abstract syntax tree, control flow graph, data flow graph, call graph, type system, and static analysis results into a single queryable graph stored as an SQLite database.
 
-Three Go modules are included: **Prometheus**, **client_golang**, and **prometheus-adapter**. You will add a fourth module yourself (see below).
+Three Go modules are referenced as git submodules: **Prometheus**, **client_golang**, and **prometheus-adapter**. You will add a fourth module yourself (see below).
+
+## Setup
+
+```bash
+git submodule update --init
+```
+
+This fetches the three source modules from GitHub.
 
 ## Prerequisites
 
@@ -86,3 +96,25 @@ Render the package dependency graph from `dashboard_package_graph` (~170 package
 ## Questions?
 
 If anything is unclear or you run into issues, reach out to [matvei@theartisan.ai](mailto:matvei@theartisan.ai).
+
+# Project Notes (additions)
+
+These notes are additions made during the project to improve reproducibility and clarify decisions.
+
+- Go version used for generation: `go1.26.0` (requirement is Go 1.25+).
+- Fourth module chosen: `node_exporter` (`github.com/prometheus/node_exporter`) because `alertmanager` conflicts in a workspace with `prometheus` due to a duplicate nested module path `github.com/prometheus/prometheus/internal/tools`.
+- CPG generation command used:
+  ```bash
+  go build -o cpg-gen .
+  ./cpg-gen -modules "./client_golang:github.com/prometheus/client_golang:client_golang,./prometheus-adapter:sigs.k8s.io/prometheus-adapter:adapter,./node_exporter:github.com/prometheus/node_exporter:node_exporter" ./prometheus cpg.db
+  ```
+- Output database: `cpg.db` (~937 MB). It is ignored by git to avoid committing large binaries.
+- Submodule revisions (for reproducibility):
+- `client_golang`: `bf37be4fecc0a3d89f980252e206b67806990e56` (v1.23.2-98-gbf37be4)
+- `prometheus`: `8937cbd3955513efe0e0c76c58a3e0665a35df3a` (v0.309.1-304-g8937cbd39)
+- `prometheus-adapter`: `01919d0ef11859bc214e0c8a8bd5368afd9d47f7` (v0.12.0-4-g01919d0)
+- `node_exporter`: `e8812553ac19526e4753e1972020c9f3e55ddb17` (v1.10.2-39-ge8812553)
+
+## Developer Benefit
+
+**Package Architecture Map** gives an at-a-glance view of module boundaries and dependencies: the package graph makes hotspots obvious, complexity sizing highlights risk areas, and drilling into a package’s functions speeds up ownership discovery and impact analysis.
